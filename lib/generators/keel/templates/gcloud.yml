@@ -1,0 +1,19 @@
+:app:
+  :name:        YOUR-APP-NAME
+:compute:
+  :zone:        YOUR-ZONE
+  :region:      YOUR-REGION
+:container:
+  :app_image_path:        YOUR-APP-IMAGE-PATH
+  :cloud_sql_image_path:  YOUR-CLOUD-SQL-IMAGE-PATH
+  :cluster:               YOUR-CLUSTER-NAME
+:project_id:    YOUR-PROJECT-ID
+:cloud_sql_instance:
+  # Add your own, eg.
+  # :production:  production
+:env_variables:
+  # Add your own, eg.
+  # :production:
+  #   :force_ssl:       true
+  #   :quepid_ga:       UA-XXXXXXXX-X
+  #   :ga_domain:       example.com

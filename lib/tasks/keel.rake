@@ -1,5 +1,5 @@
 namespace :keel do
-  desc 'Deploy the specified SHA in given environment'
+  desc 'Deploy the specified SHA to a given environment'
   task :deploy, [:environment, :deploy_sha] do |_, args|
     prompter  = Keel::GCloud::Prompter.new
     config    = Keel::GCloud::Config.new

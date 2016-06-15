@@ -1,6 +1,13 @@
 require 'yaml'
 
 module Keel::GCloud
+  #
+  # Config file parser.
+  # Takes the YAML file and creates an object with attributes matching
+  # the supplied configurations.
+  #
+  # Also serves as a wrapper for the GCloud configurations API.
+  #
   class Config
     attr_accessor :cli,
                   :config,
@@ -31,19 +38,41 @@ module Keel::GCloud
       @project_id                     = @config[:project_id]
     end
 
+    #
+    # Lists the GCloud configurations.
+    #
+    # @return [Array] of configurations
+    #
     def self.list
       Cli.new.execute 'gcloud config list'
     end
 
+    #
+    # Checks if the gcloud excutable is installed.
+    #
+    # @return [Boolean]
+    #
     def executable_installed?
       @cli.system 'which gcloud'
       $?.success?
     end
 
+    #
+    # (see #executable_installed?)
+    #
     def executable_missing?
       !executable_installed?
     end
 
+    #
+    # Gets the application specific configurations for GCloud by checking
+    # if any ENV variables are set first, otherwise returning the ones
+    # from the config file.
+    # This allows the developer to override a config param locally without
+    # changing the YAML file.
+    #
+    # @return [Hash] of config name/value
+    #
     def app_config
       values = {}
 
@@ -54,6 +83,12 @@ module Keel::GCloud
       return values
     end
 
+    #
+    # Checks if the user's system is configured properly or if it's missing
+    # any configurations.
+    #
+    # @return [Boolean]
+    #
     def system_configured?
       system_configs  = self.class.list
       desired_configs = self.app_config
@@ -61,6 +96,10 @@ module Keel::GCloud
       desired_configs.values.all? { |config| system_configs.include? config }
     end
 
+    #
+    # Sets the appropriate GCloud configurations properties for the system
+    # if they are not already set.
+    #
     def set_properties
       @cli.system "gcloud config set compute/zone #{self.compute_zone}"
       @cli.system "gcloud config set container/cluster #{self.container_cluster}"

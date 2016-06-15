@@ -61,7 +61,7 @@ You can find the generated files under the `ops/` directory of your application.
 
 ## LOLz
 
-Naming is hard, so why no have fun with it?
+Naming is hard, so why not have fun with it?
 
 ```
 Daniel

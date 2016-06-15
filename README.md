@@ -2,6 +2,8 @@
 
 This gem provides a few easy to run rake tasks to deploy your [Rails](http://rubyonrails.org/) application to a [Kubernetes](http://kubernetes.io/) cluster.
 
+[![Gem Version](https://badge.fury.io/rb/keel.svg)](https://badge.fury.io/rb/keel)
+
 ## Installation
 
 Add this line to your application's Gemfile:

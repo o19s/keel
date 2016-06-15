@@ -38,7 +38,7 @@ module Keel::GCloud
       end
 
       def self.replace file
-        Cli.new.call "kubectl replace -f #{file}"
+        Cli.new.system "kubectl replace -f #{file}"
       end
 
       def to_yaml

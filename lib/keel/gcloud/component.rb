@@ -1,11 +1,11 @@
 module Keel::GCloud
   class Component
     def self.update
-       Cli.new.call 'gcloud components update'
+      Cli.new.system 'gcloud components update'
     end
 
     def self.install_k8s
-      Cli.new.call 'gcloud components install kubectl'
+      Cli.new.system 'gcloud components install kubectl'
     end
   end
 end

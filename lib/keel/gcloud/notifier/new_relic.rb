@@ -3,7 +3,7 @@ module Keel::GCloud
     class NewRelic < Base
       def notify
         env = @env == 'production' ? 'production' : 'staging'
-        @cli.call "newrelic deployments -e #{env} -r #{@sha} -u #{@user}"
+        @cli.system "newrelic deployments -e #{env} -r #{@sha} -u #{@user}"
       end
     end
   end

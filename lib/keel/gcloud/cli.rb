@@ -8,7 +8,7 @@ module Keel::GCloud
       end
     end
 
-    def call command
+    def system command
       begin
         system command
       rescue Interrupt

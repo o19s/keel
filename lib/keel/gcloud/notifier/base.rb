@@ -15,7 +15,7 @@ module Keel::GCloud
       end
 
       def set_user
-        if ENV['DEPLOY_USERNAME'].present?
+        unless ENV['DEPLOY_USERNAME'].nil? || ENV['DEPLOY_USERNAME'] == ''
           return @user = ENV['DEPLOY_USERNAME']
         end
 

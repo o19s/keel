@@ -13,6 +13,7 @@ module Keel::GCloud
         @uid        = params[:uid]
 
         @cli        = Cli.new
+        @prompter   = Prompter.new
       end
 
       def self.from_yaml yaml
@@ -42,18 +43,18 @@ module Keel::GCloud
       end
 
       def delete
-        @cli.call "kubectl delete po #{self.name} --namespace=#{self.namespace}"
+        @cli.system "kubectl delete po #{self.name} --namespace=#{self.namespace}"
       end
 
-      def logs tail
-        f = tail ? '-f' : ''
+      def logs tail=nil
+        f = tail ? '-f ' : ''
 
         if tail
-          puts 'Fetching logs...'
-          puts 'Use Ctrl-C to stop'
+          @prompter.print 'Fetching logs...'
+          @prompter.print 'Use Ctrl-C to stop'
         end
 
-        @cli.call "kubectl logs #{f} #{self.name} --namespace=#{self.namespace} -c=#{self.app}"
+        @cli.system "kubectl logs #{f}#{self.name} --namespace=#{self.namespace} -c=#{self.app}"
       end
     end
   end

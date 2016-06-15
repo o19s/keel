@@ -8,11 +8,11 @@ module Keel::GCloud
     end
 
     def self.authenticate
-      Cli.new.call 'gcloud auth login'
+      Cli.new.system 'gcloud auth login'
     end
 
     def authenticate_k8s
-      @cli.call "gcloud container clusters get-credentials #{self.config.container_cluster}"
+      @cli.system "gcloud container clusters get-credentials #{self.config.container_cluster}"
     end
   end
 end

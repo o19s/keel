@@ -62,7 +62,7 @@ module Keel::GCloud
       # @return [Boolean] whether the call succeeded or not
       #
       def self.replace file
-        Cli.new.system "kubectl replace -f #{file}"
+        Cli.new.system_call "kubectl replace -f #{file}"
       end
 
       #

@@ -53,7 +53,7 @@ module Keel::GCloud
     # @return [Boolean]
     #
     def executable_installed?
-      @cli.system 'which gcloud'
+      @cli.system_call 'which gcloud'
       $?.success?
     end
 
@@ -101,9 +101,9 @@ module Keel::GCloud
     # if they are not already set.
     #
     def set_properties
-      @cli.system "gcloud config set compute/zone #{self.compute_zone}"
-      @cli.system "gcloud config set container/cluster #{self.container_cluster}"
-      @cli.system "gcloud config set project #{self.project_id}"
+      @cli.system_call "gcloud config set compute/zone #{self.compute_zone}"
+      @cli.system_call "gcloud config set container/cluster #{self.container_cluster}"
+      @cli.system_call "gcloud config set project #{self.project_id}"
     end
   end
 end

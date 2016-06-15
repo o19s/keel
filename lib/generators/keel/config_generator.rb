@@ -5,8 +5,8 @@ module Keel
 
       source_root File.expand_path('../templates', __FILE__)
 
-      def copy_settings
-        copy "gcloud.yml", "config/gcloud.yml"
+      def copy_config
+        copy_file "gcloud.yml", "config/gcloud.yml"
       end
     end
   end

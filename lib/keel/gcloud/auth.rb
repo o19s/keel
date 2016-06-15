@@ -16,7 +16,7 @@ module Keel::GCloud
     # @return [Boolean] whether the call succeeded or not
     #
     def self.authenticate
-      Cli.new.system 'gcloud auth login'
+      Cli.new.system_call 'gcloud auth login'
     end
 
     #
@@ -26,7 +26,7 @@ module Keel::GCloud
     # @return [Boolean] whether the call succeeded or not
     #
     def authenticate_k8s
-      @cli.system "gcloud container clusters get-credentials #{self.config.container_cluster}"
+      @cli.system_call "gcloud container clusters get-credentials #{self.config.container_cluster}"
     end
   end
 end

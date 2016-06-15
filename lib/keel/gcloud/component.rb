@@ -9,7 +9,7 @@ module Keel::GCloud
     # @return [Boolean] whether the call succeeded or not
     #
     def self.update
-      Cli.new.system 'gcloud components update'
+      Cli.new.system_call 'gcloud components update'
     end
 
     #
@@ -18,7 +18,7 @@ module Keel::GCloud
     # @return [Boolean] whether the call succeeded or not
     #
     def self.install_k8s
-      Cli.new.system 'gcloud components install kubectl'
+      Cli.new.system_call 'gcloud components install kubectl'
     end
   end
 end

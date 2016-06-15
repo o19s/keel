@@ -72,7 +72,7 @@ EOS
 
     def test_that_it_replaces_a_controller
       cli = Minitest::Mock.new
-      cli.expect :system, nil, ["kubectl replace -f foo"]
+      cli.expect :system_call, nil, ["kubectl replace -f foo"]
 
       Keel::GCloud::Cli.stub :new, cli do
         ReplicationController.replace 'foo'

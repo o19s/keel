@@ -1,7 +1,7 @@
 module Keel::GCloud
   #
   # A helper class to run system commands and handle interrupts.
-  # 
+  #
   class Cli
     def execute command
       begin
@@ -11,7 +11,7 @@ module Keel::GCloud
       end
     end
 
-    def system command
+    def system_call command
       begin
         system command
       rescue Interrupt

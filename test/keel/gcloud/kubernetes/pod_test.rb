@@ -65,7 +65,7 @@ EOS
 
     def test_that_it_deletes_a_pod
       cli = Minitest::Mock.new
-      cli.expect :system, nil, ["kubectl delete po a_pod --namespace=#{@env}"]
+      cli.expect :system_call, nil, ["kubectl delete po a_pod --namespace=#{@env}"]
 
       Keel::GCloud::Cli.stub :new, cli do
         pod = Pod.new(
@@ -84,7 +84,7 @@ EOS
 
     def test_that_it_fetches_the_logs_for_a_pod
       cli = Minitest::Mock.new
-      cli.expect :system, nil, ["kubectl logs a_pod --namespace=#{@env} -c=#{@app}"]
+      cli.expect :system_call, nil, ["kubectl logs a_pod --namespace=#{@env} -c=#{@app}"]
 
       Keel::GCloud::Cli.stub :new, cli do
         pod = Pod.new(
@@ -103,7 +103,7 @@ EOS
 
     def test_that_it_tails_the_logs_for_a_pod
       cli = Minitest::Mock.new
-      cli.expect :system, nil, ["kubectl logs -f a_pod --namespace=#{@env} -c=#{@app}"]
+      cli.expect :system_call, nil, ["kubectl logs -f a_pod --namespace=#{@env} -c=#{@app}"]
 
       prompter = Minitest::Mock.new
       prompter.expect :print, nil, [String]

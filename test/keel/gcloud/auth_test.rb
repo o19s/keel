@@ -4,7 +4,7 @@ module Keel::GCloud
   class AuthTest < Minitest::Test
     def test_that_it_calls_the_login_api_for_gcloud
       cli = Minitest::Mock.new
-      cli.expect :system, nil, ['gcloud auth login']
+      cli.expect :system_call, nil, ['gcloud auth login']
 
       Cli.stub :new, cli do
         Auth.authenticate
@@ -15,7 +15,7 @@ module Keel::GCloud
 
     def test_that_it_calls_the_container_api_for_gcloud
       cli = Minitest::Mock.new
-      cli.expect :system, nil, ['gcloud container clusters get-credentials foo']
+      cli.expect :system_call, nil, ['gcloud container clusters get-credentials foo']
 
       config = Minitest::Mock.new
       config.expect :container_cluster, 'foo'

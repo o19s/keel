@@ -71,7 +71,7 @@ module Keel::GCloud
       # @return [Boolean] whether the call succeeded or not
       #
       def delete
-        @cli.system "kubectl delete po #{self.name} --namespace=#{self.namespace}"
+        @cli.system_call "kubectl delete po #{self.name} --namespace=#{self.namespace}"
       end
 
       #
@@ -89,7 +89,7 @@ module Keel::GCloud
           @prompter.print 'Use Ctrl-C to stop'
         end
 
-        @cli.system "kubectl logs #{f}#{self.name} --namespace=#{self.namespace} -c=#{self.app}"
+        @cli.system_call "kubectl logs #{f}#{self.name} --namespace=#{self.namespace} -c=#{self.app}"
       end
     end
   end

@@ -10,7 +10,7 @@ module Keel::GCloud
       #
       def notify
         env = @env == 'production' ? 'production' : 'staging'
-        @cli.system "newrelic deployments -e #{env} -r #{@sha} -u #{@user}"
+        @cli.system_call "newrelic deployments -e #{env} -r #{@sha} -u #{@user}"
       end
     end
   end

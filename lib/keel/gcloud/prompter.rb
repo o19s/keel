@@ -16,7 +16,7 @@ module Keel::GCloud
       end
     end
 
-    def prompt_for_namespace namespaces, default
+    def prompt_for_namespace namespaces, default=nil
       return default unless default.blank?
 
       options = namespaces.map { |namespace| namespace.name }
@@ -24,7 +24,7 @@ module Keel::GCloud
       options[index]
     end
 
-    def prompt_for_sha default
+    def prompt_for_sha default=nil
       return default unless default.blank?
 
       # Get current git SHA
@@ -32,13 +32,13 @@ module Keel::GCloud
       Ask.input 'Git SHA', default: current_sha
     end
 
-    def prompt_for_database_url default
+    def prompt_for_database_url default=nil
       return default unless default.blank?
 
       Ask.input 'Database URL'
     end
 
-    def prompt_for_secret_key default
+    def prompt_for_secret_key default=nil
       return default unless default.blank?
 
       Ask.input 'Secret key'

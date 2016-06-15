@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: <%= @params[:deploy_env] %>-<%= @params[:app] %>-app
+  labels:
+    app: <%= @params[:app] %>
+  namespace: <%= @params[:deploy_env] %>
+spec:
+  ports:
+  - name: web-http
+    port: 80
+    targetPort: 3000
+  selector:
+    app: <%= @params[:app] %>
+  type: NodePort

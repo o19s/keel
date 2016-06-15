@@ -91,7 +91,8 @@ namespace :keel do
 
   desc 'Configures the local machine for communication with gcloud and k8s'
   task :setup do |_|
-    config = Keel::GCloud::Config.new
+    prompter  = Keel::GCloud::Prompter.new
+    config    = Keel::GCloud::Config.new
 
     if config.executable_missing?
       message = 'Install Google Cloud command line tools'
@@ -105,19 +106,19 @@ namespace :keel do
       abort 'App appears to already be configured on your system.'.green
     end
 
-    puts 'Updating tools'.yellow
+    prompter.print 'Updating tools', :info
     Keel::GCloud::Component.update
 
-    puts 'Authenticating with Google Cloud'.yellow
+    prompter.print 'Authenticating with Google Cloud', :info
     Keel::GCloud::Auth.authenticate
 
-    puts 'Install Kubernetes'.yellow
+    prompter.print 'Install Kubernetes', :info
     Keel::GCloud::Component.install_k8s
 
-    puts 'Setting gcloud properties'.yellow
+    prompter.print 'Setting gcloud properties', :info
     config.set_properties
 
-    puts 'Pulling Kubernetes auth configuration'.yellow
+    prompter.print 'Pulling Kubernetes auth configuration', :info
     auth = Keel::GCloud::Auth.new config: config
     auth.authenticate_k8s
   end

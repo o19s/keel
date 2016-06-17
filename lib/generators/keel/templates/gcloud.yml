@@ -15,5 +15,5 @@
   # Add your own, eg.
   # :production:
   #   :force_ssl:       true
-  #   :quepid_ga:       UA-XXXXXXXX-X
+  #   :ga:              UA-XXXXXXXX-X
   #   :ga_domain:       example.com

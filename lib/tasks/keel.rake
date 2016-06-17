@@ -41,7 +41,7 @@ namespace :keel do
 
     # We can get away with first since it is a single container pod
     container = rc.containers.first
-    container['image'] = "gcr.io/quepid-1051/quails:#{deploy_sha}"
+    container['image'] = "#{config.container_app_image_path}:#{deploy_sha}"
     rc.increment_replica_count
     rc.update
 

@@ -26,7 +26,7 @@ spec:
         emptyDir:
       containers:
       - name: <%= @params[:app] %>
-        image: <%= @params[:container_app_image_path] %>
+        image: <%= @params[:container_app_image_path] %>:latest
         ports:
         - containerPort: 3000
         resources:

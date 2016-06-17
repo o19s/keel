@@ -24,6 +24,12 @@ Or install it yourself as:
 $ gem install keel
 ```
 
+## History
+
+This gem was extracted out of an existing app, so we've tried to generalize it as much as possible. That said, there might be areas that requirement improvement, PRs are welcomed.
+
+Another OSS project to look at is [Grand Central](https://github.com/o19s/grand_central) which is a tool for dynamic deployment and cleanup of containers on Kubernetes.
+
 ## Usage
 
 First, run:

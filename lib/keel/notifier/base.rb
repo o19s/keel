@@ -1,6 +1,6 @@
 class NotImplemented < StandardError; end
 
-module Keel::GCloud
+module Keel
   module Notifier
     #
     # Base class to be inherited for notifiers that are used to send any
@@ -13,7 +13,7 @@ module Keel::GCloud
         @env = env
         @sha = sha
 
-        @cli = Cli.new
+        @cli = GCloud::Cli.new
 
         set_user
       end

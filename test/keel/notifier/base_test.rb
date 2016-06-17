@@ -1,6 +1,6 @@
 require 'test_helper'
 
-module Keel::GCloud::Notifier
+module Keel::Notifier
   class BaseTest < Minitest::Test
     def test_that_it_sets_the_user_to_the_result_of_the_whoami_if_no_env_value_exists
       cli = Minitest::Mock.new

@@ -1,6 +1,6 @@
 require 'test_helper'
 
-module Keel::GCloud::Notifier
+module Keel::Notifier
   class NewRelicTest < Minitest::Test
     def test_that_it_calls_the_new_relic_client_to_notify_of_deployment
       cli = Minitest::Mock.new

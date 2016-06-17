@@ -83,7 +83,7 @@ namespace :keel do
     rc.update
 
     prompter.print 'Notifying NewRelic of deployment', :info
-    notifier = Keel::GCloud::Notifier::NewRelic.new env: deploy_env, sha: deploy_sha
+    notifier = Keel::Notifier::NewRelic.new env: deploy_env, sha: deploy_sha
     notifier.notify
 
     prompter.print 'Deployment complete', :success

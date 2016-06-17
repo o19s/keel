@@ -1,4 +1,4 @@
-module Keel::GCloud
+module Keel
   module Notifier
     #
     # Notifier for NewRelic that send a deployment notification.

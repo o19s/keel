@@ -41,15 +41,24 @@ module Keel::GCloud
       end
 
       #
-      # Fetches all the controllers from Kubernetes.
+      # Fetches the correct deployment or replication controller from Kubernetes.
       #
       # @param env [String] the namespace/environment for which to fetch the controllers
       # @param app [String] the app for which to fetch the controllers
       # @return [Hash] the parsed result of the API call
       #
       def self.fetch_all env, app
-        command   = "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml"
-        rcs_yaml  = YAML.load Cli.new.execute(command)
+        require 'pp'
+        commands   = [
+          "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml",
+          "kubectl get deployment --namespace=#{env} -l run=#{app} -o yaml"
+        ]
+        rcs_yaml = nil
+        for command in commands.each
+          rcs_yaml  = YAML.load Cli.new.execute(command)
+          break if rcs_yaml["metadata"]["kind"] # kubernetes object found!
+        end
+
         return false unless rcs_yaml
 
         self.from_yaml rcs_yaml

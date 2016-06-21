@@ -1,4 +1,43 @@
 namespace :keel do
+  def pick_sha(sha)
+    unless @sha
+      prompter  = Keel::GCloud::Prompter.new
+      @sha = prompter.prompt_for_sha sha
+    end
+    @sha
+  end
+
+  desc "build a docker image suitable for pushing"
+  task :pack, [:deploy_sha] => :dockerfile do |_, args|
+    config    = Keel::GCloud::Config.new
+
+    pack_sha  = pick_sha(args[:deploy_sha])
+    command   = "docker build -t gcr.io/#{config.project_id}/#{config.app_name}:#{pack_sha} ."
+    puts command
+    Keel::GCloud::Cli.new.execute(command)
+  end
+  
+  desc "ship the image to gcloud"
+  task :push, [:deploy_sha] do |_, args|
+    config    = Keel::GCloud::Config.new
+
+    pack_sha  = pick_sha(args[:deploy_sha])
+    command   = "gcloud docker push gcr.io/#{config.project_id}/#{config.app_name}:#{pack_sha}"
+    puts command
+    Keel::GCloud::Cli.new.execute(command)
+  end
+
+  # if we don't have a dockerfile, this will probably do
+  task :dockerfile do
+    unless File.exist?('Dockerfile')
+      File.write('Dockerfile', 'FROM rails:onbuild')
+    end
+  end
+
+  task :shipit, [:deploy_sha] => [:pack, :push, :deploy] do |_, args|
+    puts "packed, pushed and deployed #{pick_sha(args[:deploy_sha])}!"
+  end
+
   desc 'Deploy the specified SHA to a given environment'
   task :deploy, [:environment, :deploy_sha] do |_, args|
     prompter  = Keel::GCloud::Prompter.new
@@ -15,7 +54,7 @@ namespace :keel do
 
     # Prompt the user for the env and git commit to deploy
     deploy_env  = prompter.prompt_for_namespace namespaces, args[:environment]
-    deploy_sha  = prompter.prompt_for_sha args[:deploy_sha]
+    deploy_sha  = pick_sha(args[:deploy_sha])
 
     # Retrieve a replication controller configuration from the cluster
     rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, app

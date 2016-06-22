@@ -63,7 +63,7 @@
 			end
 		end
 
-		task :shipit, [:deploy_sha] => [:set_gcloud_properties,
+	  task :shipit, [:deploy_sha] => [:set_gcloud_properties,
 																		:pack,
 																		:push,
 																		:provision,

@@ -48,7 +48,6 @@ module Keel::GCloud
       # @return [Hash] the parsed result of the API call
       #
       def self.fetch_all env, app
-        require 'pp'
         commands   = [
           "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml",
           "kubectl get deployment --namespace=#{env} -l run=#{app} -o yaml"
@@ -74,6 +73,16 @@ module Keel::GCloud
         Cli.new.system_call "kubectl replace -f #{file}"
       end
 
+      # 
+      # Create a Deployment and expose it on kubernetes
+      #
+      def self.create namespace, app_name, project_id, port, sha
+        command   = "kubectl run #{app_name} --image=gcr.io/#{project_id}/#{app_name}:#{sha} --namespace=#{namespace}"
+        Cli.new.execute(command)
+        command   = "kubectl expose deployment #{app_name} --port=80 --target-port=#{port} --type=LoadBalancer --namespace=#{namespace}"
+        Cli.new.execute(command)
+      end
+      
       #
       # Get the YAML representation of the controller.
       #

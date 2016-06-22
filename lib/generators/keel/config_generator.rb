@@ -7,6 +7,7 @@ module Keel
 
       def copy_config
         copy_file "gcloud.yml", "config/gcloud.yml"
+        copy_file "Dockerfile", "Dockerfile"
       end
     end
   end

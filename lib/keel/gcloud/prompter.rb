@@ -35,9 +35,13 @@ module Keel::GCloud
     def prompt_for_namespace namespaces, default=nil
       return default unless default.blank?
 
-      options = namespaces.map { |namespace| namespace.name }
-      index = Ask.list 'Please choose an environment (destination)', options
-      options[index]
+      options = namespaces.map { |namespace| namespace.name } - ['kube-system']
+      if options.count > 1
+        index = Ask.list 'Please choose an environment (destination)', options
+        options[index]
+      else
+        options[0]
+      end
     end
 
     #

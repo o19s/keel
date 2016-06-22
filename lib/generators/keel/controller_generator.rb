@@ -1,3 +1,4 @@
+# TODO, kill these and their templates
 module Keel
   module Generators
     class ControllerGenerator < ::Rails::Generators::Base

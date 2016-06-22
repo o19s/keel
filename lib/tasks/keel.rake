@@ -4,21 +4,22 @@ namespace :keel do
 
   desc "build a docker image suitable for pushing"
   task :pack, [:deploy_sha] do |_, args|
-    
-    #TODO warn about the madness of dirty folders, and the fact that we aren't really checking anything!
+    prompter.prompt 'Building Docker image', :info
     image_label  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
     command   = "docker build -t gcr.io/#{config.project_id}/#{config.app_name}:#{image_label} ."
     
     Keel::GCloud::Cli.new.execute(command)
+    prompter.prompt 'finished build', :info 
   end
 
   desc "ship the image to gcloud"
   task :push, [:deploy_sha] do |_, args|
-    #TODO figure out if the sha is something we can actually deploy
+    prompter.prompt 'Pushing image to Docker repository, this may take some time', :info
     image_label  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
     command   = "gcloud docker push gcr.io/#{config.project_id}/#{config.app_name}:#{image_label}"
 
     Keel::GCloud::Cli.new.execute(command)
+    prompter.prompt 'finished push', :info
   end
 
   desc "provision a deployment and service on kubernetes"

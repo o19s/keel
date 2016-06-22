@@ -45,17 +45,17 @@ module Keel::GCloud
     end
 
     #
-    # Prompts the user to provide a SHA.
+    # Prompts the user to provide a label.  Defaults to the current git branch shortened SHA.
     # If a default is provided it returns that instead.
     #
     # @param default [String, nil] the default choice
     #
-    def prompt_for_sha default=nil
+    def prompt_for_label default=nil
       return default unless default.blank?
 
       # Get current git SHA
       current_sha = `git rev-parse --short HEAD`.lines.first.split(' ')[0]
-      Ask.input 'Git SHA', default: current_sha
+      Ask.input 'Image Label (defaults to Git SHA)', default: current_sha
     end
 
     #

@@ -1,0 +1,4 @@
+dependencies:
+  pre:
+    - echo Y | rvm @global do gem uninstall bundler
+    - gem install bundler -v '1.11'

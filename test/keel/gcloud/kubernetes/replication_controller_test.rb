@@ -37,6 +37,63 @@ metadata: {}
       assert cli.verify
     end
 
+    def test_that_it_checks_deployments_if_no_rcs
+      mock_yaml = <<-EOS
+
+apiVersion: v1
+items:
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    generation: 44
+    labels:
+      run: test
+    name: test
+    namespace: default
+    resourceVersion: "85195"
+    selfLink: /apis/extensions/v1beta1/namespaces/default/deployments/test
+  spec:
+    replicas: 5
+    selector:
+      matchLabels:
+        run: test
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          run: mixtape
+      spec:
+        containers:
+        - image: gcr.io/test/app:1234
+          imagePullPolicy: IfNotPresent
+          name: mixtape
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+kind: List
+metadata: {}
+EOS
+      cli = Minitest::Mock.new
+      cli.expect :execute, @empty_kubectl_response, ["kubectl get rc --namespace=#{@env} -l app=#{@app} -o yaml"]
+      cli.expect :execute, mock_yaml, ["kubectl get deployment --namespace=#{@env} -l run=#{@app} -o yaml"]
+
+      Keel::GCloud::Cli.stub :new, cli do
+        result = ReplicationController.fetch_all(@env, @app)
+        assert_kind_of Array, result
+
+        first = result[0]
+        assert first.name, 'test'
+      end
+    end
+
     def test_that_it_returns_an_array_of_namespaces
       mock_yaml = <<-EOS
 apiVersion: v1

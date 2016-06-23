@@ -14,9 +14,7 @@ namespace :keel do
   task :push, [:deploy_sha] do |_, args|
     prompter.print 'Pushing image to Docker repository, this may take some time', :info
     image_label  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
-    command   = "gcloud docker push gcr.io/#{config.project_id}/#{config.app_name}:#{image_label}"
-
-    Keel::GCloud::Cli.new.execute(command)
+    Keel::Docker::Image.push image_label, config.project_id, config.app_name
     prompter.print 'finished push', :info
   end
 

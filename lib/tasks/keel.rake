@@ -44,7 +44,7 @@ namespace :keel do
 
   desc 'Deploy the specified SHA to a given environment'
   task :deploy, [:environment, :deploy_sha] do |_, args|
-    app       	= config.app_name
+    app         = config.app_name
     deploy_sha  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
     deploy_env  = Keel::GCloud::Interactions.pick_namespace args[:environment]
 
@@ -175,8 +175,7 @@ namespace :keel do
 
   desc 'Pulls logs for a given environment'
   task :logs, [:environment] do |_, args|
-    app       = config.app_name
-
+    app           = config.app_name
     # Prompt the user for the env and to log and whether to tail the logs
     deploy_env    = Keel::GCloud::Interactions.pick_namespace args[:environment]
     tail          = prompter.prompt_for_tailing_logs

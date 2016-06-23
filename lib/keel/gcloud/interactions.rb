@@ -4,7 +4,7 @@ module Keel::GCloud
   #
   class Interactions
     @@namespace = nil
-    @@label       = nil
+    @@label     = nil
 
     #
     # Prompts for the deployment namespace if there are multiple available and one has
@@ -14,15 +14,14 @@ module Keel::GCloud
     #
     def self.pick_namespace(namespace)
       unless @@namespace
-        prompter  = Keel::GCloud::Prompter.new
-        # Fetch namespaces from k8s
+        prompter    = Keel::GCloud::Prompter.new
         namespaces 	= Keel::GCloud::Kubernetes::Namespace.fetch_all
         unless namespaces
           message = 'Unable to connect to Kubernetes, please try again later...'
           prompter.print message, :error
           abort
         end
-        @@namespace  = prompter.prompt_for_namespace namespaces, namespace
+        @@namespace = prompter.prompt_for_namespace namespaces, namespace
       end
       @@namespace
     end
@@ -33,7 +32,7 @@ module Keel::GCloud
     # @params label [String] the default value to present to the user
     def self.pick_image_label(label)
       unless @@label
-        prompter  = Keel::GCloud::Prompter.new
+        prompter = Keel::GCloud::Prompter.new
         @@label = prompter.prompt_for_label label
       end
       @@label

@@ -54,7 +54,7 @@ module Keel::GCloud
         ]
         rcs_yaml = nil
         for command in commands.each
-          rcs_yaml  = YAML.load Cli.new.execute(command)
+          rcs_yaml = YAML.load Cli.new.execute(command)
           break if rcs_yaml["items"].count > 0  # kubernetes object found!
         end
 
@@ -76,11 +76,11 @@ module Keel::GCloud
       # Create a Deployment and expose it on kubernetes
       #
       def self.create namespace, app_name, project_id, port, sha
-        cli = Cli.new
-        command   = "kubectl run #{app_name} --image=gcr.io/#{project_id}/#{app_name}:#{sha} --namespace=#{namespace}"
-        cli.execute(command)
-        command   = "kubectl expose deployment #{app_name} --port=80 --target-port=#{port} --type=LoadBalancer --namespace=#{namespace}"
-        cli.execute(command)
+        cli            = Cli.new
+        deploy_command = "kubectl run #{app_name} --image=gcr.io/#{project_id}/#{app_name}:#{sha} --namespace=#{namespace}"
+        expose_command = "kubectl expose deployment #{app_name} --port=80 --target-port=#{port} --type=LoadBalancer --namespace=#{namespace}"
+        cli.execute(deploy_command)
+        cli.execute(expose_command)
       end
       
       #

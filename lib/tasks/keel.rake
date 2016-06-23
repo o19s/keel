@@ -6,9 +6,7 @@ namespace :keel do
   task :pack, [:deploy_sha] do |_, args|
     prompter.print 'Building Docker image', :info
     image_label  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
-    command   = "docker build -t gcr.io/#{config.project_id}/#{config.app_name}:#{image_label} ."
-    
-    Keel::GCloud::Cli.new.execute(command)
+    Keel::Docker::Image.create image_label, config.project_id, config.app_name
     prompter.print 'finished build', :info 
   end
 

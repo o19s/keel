@@ -5,11 +5,18 @@ module Keel::GCloud::Kubernetes
     def setup
       @env = 'foo'
       @app = 'bar'
+      @empty_kubectl_response = <<-EOS
+apiVersion: v1
+items: []
+kind: List
+metadata: {}
+      EOS
     end
 
     def test_that_it_calls_the_get_namespaces_api_for_k8s
       cli = Minitest::Mock.new
-      cli.expect :execute, '', ["kubectl get rc --namespace=#{@env} -l app=#{@app} -o yaml"]
+      cli.expect :execute, @empty_kubectl_response, ["kubectl get rc --namespace=#{@env} -l app=#{@app} -o yaml"]
+      cli.expect :execute, @empty_kubectl_response, ["kubectl get deployment --namespace=#{@env} -l run=#{@app} -o yaml"]
 
       Keel::GCloud::Cli.stub :new, cli do
         ReplicationController.fetch_all @env, @app
@@ -20,7 +27,8 @@ module Keel::GCloud::Kubernetes
 
     def test_that_it_returns_false_if_no_namespaces_are_returned
       cli = Minitest::Mock.new
-      cli.expect :execute, '', ["kubectl get rc --namespace=#{@env} -l app=#{@app} -o yaml"]
+      cli.expect :execute, @empty_kubectl_response, ["kubectl get rc --namespace=#{@env} -l app=#{@app} -o yaml"]
+      cli.expect :execute, @empty_kubectl_response, ["kubectl get deployment --namespace=#{@env} -l run=#{@app} -o yaml"]
 
       Keel::GCloud::Cli.stub :new, cli do
         assert !ReplicationController.fetch_all(@env, @app)
@@ -60,6 +68,7 @@ items:
 EOS
       cli = Minitest::Mock.new
       cli.expect :execute, mock_yaml, ["kubectl get rc --namespace=#{@env} -l app=#{@app} -o yaml"]
+      cli.expect :execute, @empty_kubectl_response, ["kubectl get deployment --namespace=#{@env} -l run=#{@app} -o yaml"]
 
       Keel::GCloud::Cli.stub :new, cli do
         result = ReplicationController.fetch_all(@env, @app)

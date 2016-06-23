@@ -55,11 +55,10 @@ module Keel::GCloud
         rcs_yaml = nil
         for command in commands.each
           rcs_yaml  = YAML.load Cli.new.execute(command)
-          break if rcs_yaml["metadata"]["kind"] # kubernetes object found!
+          break if rcs_yaml["items"].count > 0  # kubernetes object found!
         end
 
-        return false unless rcs_yaml
-
+        return false unless rcs_yaml["items"].count > 0
         self.from_yaml rcs_yaml
       end
 

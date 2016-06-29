@@ -35,7 +35,6 @@ module Keel::GCloud
             original:   item,
             uid:        item['metadata']['uid'],
           }
-          pp params
           self.new params
         end
       end

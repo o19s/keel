@@ -1,60 +1,52 @@
 namespace :keel do
-  def pick_sha(sha)
-    unless @sha
-      prompter  = Keel::GCloud::Prompter.new
-      @sha = prompter.prompt_for_sha sha
-    end
-    @sha
-  end
+  config    = Keel::GCloud::Config.new
+  prompter  = Keel::GCloud::Prompter.new
 
   desc "build a docker image suitable for pushing"
-  task :pack, [:deploy_sha] => :dockerfile do |_, args|
-    config    = Keel::GCloud::Config.new
-
-    pack_sha  = pick_sha(args[:deploy_sha])
-    command   = "docker build -t gcr.io/#{config.project_id}/#{config.app_name}:#{pack_sha} ."
-    puts command
-    Keel::GCloud::Cli.new.execute(command)
+  task :pack, [:deploy_sha] do |_, args|
+    prompter.print 'Building Docker image', :info
+    image_label  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
+    Keel::Docker::Image.create image_label, config.project_id, config.app_name
+    prompter.print 'finished build', :info 
   end
-  
+
   desc "ship the image to gcloud"
   task :push, [:deploy_sha] do |_, args|
-    config    = Keel::GCloud::Config.new
-
-    pack_sha  = pick_sha(args[:deploy_sha])
-    command   = "gcloud docker push gcr.io/#{config.project_id}/#{config.app_name}:#{pack_sha}"
-    puts command
-    Keel::GCloud::Cli.new.execute(command)
+    prompter.print 'Pushing image to Docker repository, this may take some time', :info
+    image_label  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
+    Keel::Docker::Image.push image_label, config.project_id, config.app_name
+    prompter.print 'finished push', :info
   end
 
-  # if we don't have a dockerfile, this will probably do
-  task :dockerfile do
-    unless File.exist?('Dockerfile')
-      File.write('Dockerfile', 'FROM rails:onbuild')
+  desc "provision a deployment and service on kubernetes"
+  task :provision, [:deploy_sha] do |_, args|
+    image_label = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]    
+    deploy_env  = Keel::GCloud::Interactions.pick_namespace args[:environment]
+
+    # Retrieve a replication controller configuration from the cluster
+    rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, config.app_name
+    if rcs
+      message = "Found an existing deployment or replication controller for #{config.app_name}"
+      prompter.print message, :success
+    else
+      message = Keel::GCloud::Kubernetes::ReplicationController.create config.app_name, config.container_app_image_path, "3000", image_label, deploy_env
+      prompter.print message, :success
     end
   end
 
-  task :shipit, [:deploy_sha] => [:pack, :push, :deploy] do |_, args|
-    puts "packed, pushed and deployed #{pick_sha(args[:deploy_sha])}!"
+  task :shipit, [:deploy_sha] => [:set_gcloud_properties,
+                                  :pack,
+                                  :push,
+                                  :provision,
+                                  :deploy] do |_, args|
+    prompter.print "packed, pushed, provisioned and deployed #{config.app_name}!", :success
   end
 
   desc 'Deploy the specified SHA to a given environment'
   task :deploy, [:environment, :deploy_sha] do |_, args|
-    prompter  = Keel::GCloud::Prompter.new
-    config    = Keel::GCloud::Config.new
-    app       = config.app_name
-
-    # Fetch namespaces from k8s
-    namespaces = Keel::GCloud::Kubernetes::Namespace.fetch_all
-    unless namespaces
-      message = 'Unable to connect to Kubernetes, please try again later...'
-      prompter.print message, :error
-      abort
-    end
-
-    # Prompt the user for the env and git commit to deploy
-    deploy_env  = prompter.prompt_for_namespace namespaces, args[:environment]
-    deploy_sha  = pick_sha(args[:deploy_sha])
+    app         = config.app_name
+    deploy_sha  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
+    deploy_env  = Keel::GCloud::Interactions.pick_namespace args[:environment]
 
     # Retrieve a replication controller configuration from the cluster
     rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, app
@@ -129,9 +121,15 @@ namespace :keel do
   end
 
   desc 'Configures the local machine for communication with gcloud and k8s'
-  task :setup do |_|
-    prompter  = Keel::GCloud::Prompter.new
-    config    = Keel::GCloud::Config.new
+  task :setup => [:check_gcloud_executables, 
+                  :check_configuration,
+                  :update_tools,
+                  :gcloud_auth,
+                  :set_gcloud_properties,
+                  :install_k8s,
+                  :authenticate_k8s] 
+
+  task :check_gcloud_executables do
 
     if config.executable_missing?
       message = 'Install Google Cloud command line tools'
@@ -140,44 +138,46 @@ namespace :keel do
 
       abort message.red
     end
+  end
+
+  task :check_configuration do
 
     if config.system_configured?
       abort 'App appears to already be configured on your system.'.green
     end
+  end
 
-    prompter.print 'Updating tools', :info
-    Keel::GCloud::Component.update
-
-    prompter.print 'Authenticating with Google Cloud', :info
-    Keel::GCloud::Auth.authenticate
-
+  task :install_k8s do
     prompter.print 'Install Kubernetes', :info
     Keel::GCloud::Component.install_k8s
+  end
 
-    prompter.print 'Setting gcloud properties', :info
-    config.set_properties
-
+  task :authenticate_k8s do
     prompter.print 'Pulling Kubernetes auth configuration', :info
     auth = Keel::GCloud::Auth.new config: config
     auth.authenticate_k8s
   end
 
+  task :gcloud_auth do
+    prompter.print 'Authenticating with Google Cloud', :info
+    Keel::GCloud::Auth.authenticate
+  end
+
+  task :update_tools do
+    prompter.print 'Updating tools', :info
+    Keel::GCloud::Component.update
+  end
+
+  task :set_gcloud_properties do 
+    prompter.print 'Setting gcloud properties', :info
+    config.set_properties
+  end
+
   desc 'Pulls logs for a given environment'
   task :logs, [:environment] do |_, args|
-    prompter  = Keel::GCloud::Prompter.new
-    config    = Keel::GCloud::Config.new
-    app       = config.app_name
-
-    # Fetch namespaces from k8s
-    namespaces = Keel::GCloud::Kubernetes::Namespace.fetch_all
-    unless namespaces
-      message = 'Unable to connect to Kubernetes, please try again later...'
-      prompter.print message, :error
-      abort
-    end
-
+    app           = config.app_name
     # Prompt the user for the env and to log and whether to tail the logs
-    deploy_env    = prompter.prompt_for_namespace namespaces, args[:environment]
+    deploy_env    = Keel::GCloud::Interactions.pick_namespace args[:environment]
     tail          = prompter.prompt_for_tailing_logs
 
     prompter.print "Getting pod information for #{deploy_env}", :info

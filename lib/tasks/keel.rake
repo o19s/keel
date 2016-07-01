@@ -29,7 +29,7 @@ namespace :keel do
       message = "Found an existing deployment or replication controller for #{config.app_name}"
       prompter.print message, :success
     else
-      message = Keel::GCloud::Kubernetes::ReplicationController.create namespace, config.app_name, config.project_id, "3000", image_label
+      message = Keel::GCloud::Kubernetes::ReplicationController.create config.app_name, config.container_app_image_path, "3000", image_label, deploy_env
       prompter.print message, :success
     end
   end

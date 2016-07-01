@@ -74,9 +74,9 @@ module Keel::GCloud
       # 
       # Create a Deployment and expose it on kubernetes
       #
-      def self.create namespace, app_name, project_id, port, sha
+      def self.create app_name, image_path, port, sha, namespace
         cli            = Cli.new
-        deploy_command = "kubectl run #{app_name} --image=gcr.io/#{project_id}/#{app_name}:#{sha} --namespace=#{namespace}"
+        deploy_command = "kubectl run #{app_name} --image=#{image_path}:#{sha} --namespace=#{namespace}"
         expose_command = "kubectl expose deployment #{app_name} --port=80 --target-port=#{port} --type=LoadBalancer --namespace=#{namespace}"
         cli.execute(deploy_command)
         cli.execute(expose_command)

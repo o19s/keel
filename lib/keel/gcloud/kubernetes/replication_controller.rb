@@ -47,18 +47,10 @@ module Keel::GCloud
       # @return [Hash] the parsed result of the API call
       #
       def self.fetch_all env, app
-        commands   = [
-          "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml",
-          "kubectl get deployment --namespace=#{env} -l run=#{app} -o yaml"
-        ]
-        rcs_yaml = nil
-        for command in commands.each
-          rcs_yaml = YAML.load Cli.new.execute(command)
-          break if rcs_yaml["items"].count > 0  # kubernetes object found!
-        end
-
+        command = "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml"
+        rcs_yaml = YAML.load Cli.new.execute(command)
         return false unless rcs_yaml["items"].count > 0
-        self.from_yaml rcs_yaml
+        self.from_yaml rcs_yaml 
       end
 
       #

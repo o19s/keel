@@ -47,9 +47,11 @@ namespace :keel do
     app         = config.app_name
     deploy_sha  = Keel::GCloud::Interactions.pick_image_label args[:deploy_sha]
     deploy_env  = Keel::GCloud::Interactions.pick_namespace args[:environment]
+    #rc_type     = :replication_controller
 
     # Retrieve a replication controller configuration from the cluster
-    rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, app
+    rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all(deploy_env, app) || Keel::GCloud::Kubernetes::Deployment.fetch_all(deploy_env, app)
+
     unless rcs
       message = 'Unable to connect to Kubernetes, please try again later...'
       prompter.print message, :error
@@ -65,54 +67,60 @@ namespace :keel do
 
     # Prep deployment:
     # 1. Update image
-    # 2. Update replica count
-    # 3. Write out to a tmp file
-    # 4. Replace the running controller
-    #     - this will create 1 new pod with the updated code
-
-    # We can get away with first since it is a single container pod
     container = rc.containers.first
     container['image'] = "#{config.container_app_image_path}:#{deploy_sha}"
-    rc.increment_replica_count
-    rc.update
 
-    # Get a list of pods for the RC, this must be done pre-change
-    pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, app
-    unless pods
-      message = 'Unable to connect to Kubernetes, please try again later...'
-      prompter.print message, :error
-      abort
-    end
+    if rc.is_a? Keel::GCloud::Kubernetes::Deployment
+      rc.update
+    else
+      # Additionally for replication controllers
+      # 2. Update replica count
+      # 3. Write out to a tmp file
+      # 4. Replace the running controller
+      #     - this will create 1 new pod with the updated code
 
-    # Iterate over all pods, checking to see if they are running
-    all_pods_running = false
-    while !all_pods_running do
-      prompter.print 'Waiting for new pods to start', :info
-      sleep 5
-      new_pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, app
+      # We can get away with first since it is a single container pod
 
-      all_pods_running = true
-      new_pods.each do |pod|
-        if !pod.running?
-          prompter.print "Pod \"#{pod.name}\" is not running", :info
-          all_pods_running = false
+      rc.increment_replica_count
+      rc.update
+
+      # Get a list of pods for the RC, this must be done pre-change
+      pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, app
+      unless pods
+        message = 'Unable to connect to Kubernetes, please try again later...'
+        prompter.print message, :error
+        abort
+      end
+
+      # Iterate over all pods, checking to see if they are running
+      all_pods_running = false
+      while !all_pods_running do
+        prompter.print 'Waiting for new pods to start', :info
+        sleep 5
+        new_pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, app
+
+        all_pods_running = true
+        new_pods.each do |pod|
+          if !pod.running?
+            prompter.print "Pod \"#{pod.name}\" is not running", :info
+            all_pods_running = false
+          end
         end
       end
+
+      # Nuke old pods
+      pods.each do |pod|
+        pod.delete
+        sleep 3
+      end
+
+      # Bring the replica count down and resubmit to the cluster,
+      # this kills the 1 extra pod
+      rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, app
+      rc = rcs.first
+      rc.decrement_replica_count
+      rc.update
     end
-
-    # Nuke old pods
-    pods.each do |pod|
-      pod.delete
-      sleep 3
-    end
-
-    # Bring the replica count down and resubmit to the cluster,
-    # this kills the 1 extra pod
-    rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, app
-    rc = rcs.first
-    rc.decrement_replica_count
-    rc.update
-
     prompter.print 'Notifying NewRelic of deployment', :info
     notifier = Keel::Notifier::NewRelic.new env: deploy_env, sha: deploy_sha
     notifier.notify

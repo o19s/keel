@@ -110,6 +110,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/o19s/k
 
 * [Chris Bradford](https://github.com/bradfordcp) did the original work
 * [Youssef Chaker](https://github.com/ychaker) extracted out the gem
+* [Matt Overstreet](https://github.com/omnifroodle) added support for kubernetes deployments
 
 ## License
 

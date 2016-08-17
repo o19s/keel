@@ -47,18 +47,10 @@ module Keel::GCloud
       # @return [Hash] the parsed result of the API call
       #
       def self.fetch_all env, app
-        commands   = [
-          "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml",
-          "kubectl get deployment --namespace=#{env} -l run=#{app} -o yaml"
-        ]
-        rcs_yaml = nil
-        for command in commands.each
-          rcs_yaml = YAML.load Cli.new.execute(command)
-          break if rcs_yaml["items"].count > 0  # kubernetes object found!
-        end
-
+        command = "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml"
+        rcs_yaml = YAML.load Cli.new.execute(command)
         return false unless rcs_yaml["items"].count > 0
-        self.from_yaml rcs_yaml
+        self.from_yaml rcs_yaml 
       end
 
       #
@@ -71,17 +63,6 @@ module Keel::GCloud
         Cli.new.system_call "kubectl replace -f #{file}"
       end
 
-      # 
-      # Create a Deployment and expose it on kubernetes
-      #
-      def self.create app_name, image_path, port, sha, namespace
-        cli            = Cli.new
-        deploy_command = "kubectl run #{app_name} --image=#{image_path}:#{sha} --namespace=#{namespace}"
-        expose_command = "kubectl expose deployment #{app_name} --port=80 --target-port=#{port} --type=LoadBalancer --namespace=#{namespace}"
-        cli.execute(deploy_command)
-        cli.execute(expose_command)
-      end
-      
       #
       # Get the YAML representation of the controller.
       #

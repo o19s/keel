@@ -7,6 +7,16 @@ module Keel::GCloud::Kubernetes
       @app = 'bar'
     end
 
+    def test_complex_selectors
+      cli = Minitest::Mock.new
+      cli.expect :execute, '', ["kubectl get po --namespace=#{@env} -l app=#{@app},this=that -o yaml"]
+
+      Keel::GCloud::Cli.stub :new, cli do
+        Pod.fetch_all @env, { app: @app, this: 'that'}
+      end
+      assert cli.verify
+    end
+
     def test_that_it_calls_the_get_namespaces_api_for_k8s
       cli = Minitest::Mock.new
       cli.expect :execute, '', ["kubectl get po --namespace=#{@env} -l app=#{@app} -o yaml"]
@@ -126,4 +136,5 @@ EOS
       assert cli.verify
     end
   end
+
 end

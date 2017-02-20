@@ -45,11 +45,17 @@ module Keel::GCloud
       # Fetches all the pods from Kubernetes.
       #
       # @param env [String] the namespace/environment for which to fetch the pods
-      # @param app [String] the app for which to fetch the pods
+      # @param app [String] the app for which to fetch the pods. [optional] Hash with multiple selectors
       # @return [Hash] the parsed result of the API call
       #
-      def self.fetch_all env, app
-        command   = "kubectl get po --namespace=#{env} -l app=#{app} -o yaml"
+      def self.fetch_all env, selector
+        if selector.is_a? Hash
+          selector = selector.map{|k,v| "#{k}=#{v}"}.join(',')
+        else
+          selector = "app=#{selector}"
+        end
+        
+        command   = "kubectl get po --namespace=#{env} -l #{selector} -o yaml"
         rcs_yaml  = YAML.load Cli.new.execute(command)
         return false unless rcs_yaml
 

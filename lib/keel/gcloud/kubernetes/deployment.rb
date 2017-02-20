@@ -2,7 +2,7 @@ module Keel::GCloud
     module Kubernetes
         #
         # A class to represent a Kubernetes Deployment
-        class Deployment < ReplicationController
+        class Deployment < PodManager
 
             #
             # Fetches the correct deployment or replication controller from Kubernetes.
@@ -14,7 +14,7 @@ module Keel::GCloud
             def self.fetch_all env, app
                 command = "kubectl get deployment --namespace=#{env} -l app=#{app} -o yaml"
                 rcs_yaml = YAML.load Cli.new.execute(command)
-                return false unless rcs_yaml["items"].count > 0
+                return [] unless rcs_yaml["items"].count > 0
                 self.from_yaml rcs_yaml 
             end
 

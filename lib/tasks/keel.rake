@@ -50,76 +50,87 @@ namespace :keel do
     #rc_type     = :replication_controller
 
     # Retrieve a replication controller configuration from the cluster
-    rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all(deploy_env, app) || Keel::GCloud::Kubernetes::Deployment.fetch_all(deploy_env, app)
+    rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all(deploy_env, app) + Keel::GCloud::Kubernetes::Deployment.fetch_all(deploy_env, app)
 
     unless rcs
       message = 'Unable to connect to Kubernetes, please try again later...'
       prompter.print message, :error
       abort
     end
-    rc = rcs.first
 
-    unless rc
+    unless rcs.first
       message = "Could not find a replication controller for the \"#{deploy_env}\" environment"
       prompter.print message, :error
       abort
     end
 
-    # Prep deployment:
-    # 1. Update image
-    container = rc.containers.first
-    container['image'] = "#{config.container_app_image_path}:#{deploy_sha}"
-
-    if rc.is_a? Keel::GCloud::Kubernetes::Deployment
-      rc.update
-    else
-      # Additionally for replication controllers
-      # 2. Update replica count
-      # 3. Write out to a tmp file
-      # 4. Replace the running controller
-      #     - this will create 1 new pod with the updated code
-
-      # We can get away with first since it is a single container pod
-
-      rc.increment_replica_count
-      rc.update
-
-      # Get a list of pods for the RC, this must be done pre-change
-      pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, app
-      unless pods
-        message = 'Unable to connect to Kubernetes, please try again later...'
-        prompter.print message, :error
-        abort
-      end
-
-      # Iterate over all pods, checking to see if they are running
-      all_pods_running = false
-      while !all_pods_running do
-        prompter.print 'Waiting for new pods to start', :info
-        sleep 5
-        new_pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, app
-
-        all_pods_running = true
-        new_pods.each do |pod|
-          if !pod.running?
-            prompter.print "Pod \"#{pod.name}\" is not running", :info
-            all_pods_running = false
-          end
+  
+    rcs.each do |rc|
+      puts "Inspecting configuration for deployment #{rc.name}"
+      # Prep deployment:
+      # 1. Update image
+      controller_has_app_pod = false
+      rc.containers.each do |container|        
+        if container['image'].start_with? config.container_app_image_path
+          puts "  Updating image #{container['image']}"
+          container['image'] = "#{config.container_app_image_path}:#{deploy_sha}"
+          controller_has_app_pod = true
+        else
+          puts "  Skipping updating image #{container['image']}"
         end
       end
+      next unless controller_has_app_pod
+      if rc.is_a? Keel::GCloud::Kubernetes::Deployment
+        rc.update
+      else
+        # Additionally for replication controllers
+        # 2. Update replica count
+        # 3. Write out to a tmp file
+        # 4. Replace the running controller
+        #     - this will create 1 new pod with the updated code
 
-      # Nuke old pods
-      pods.each do |pod|
-        pod.delete
-        sleep 3
+        # We can get away with first since it is a single container pod
+
+        rc.increment_replica_count
+        rc.update
+
+        # Get a list of pods for the RC, this must be done pre-change
+        pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, rc.original['spec']['selector']
+        unless pods
+          message = 'Unable to connect to Kubernetes, please try again later...'
+          prompter.print message, :error
+          abort
+        end
+
+        # Iterate over all pods, checking to see if they are running
+        all_pods_running = false
+        while !all_pods_running do
+          prompter.print 'Waiting for new pods to start', :info
+          sleep 5
+          new_pods = Keel::GCloud::Kubernetes::Pod.fetch_all deploy_env, rc.original['spec']['selector']
+
+          all_pods_running = true
+          new_pods.each do |pod|
+            if !pod.running?
+              prompter.print "Pod \"#{pod.name}\" is not running", :info
+              all_pods_running = false
+            end
+          end
+        end
+
+        # Nuke old pods
+        pods.each do |pod|
+          pod.delete
+          sleep 3
+        end
+
+        # Bring the replica count down and resubmit to the cluster,
+        # this kills the 1 extra pod
+        rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, app
+        rc = rcs.first
+        rc.decrement_replica_count
+        rc.update
       end
-
-      # Bring the replica count down and resubmit to the cluster,
-      # this kills the 1 extra pod
-      rcs = Keel::GCloud::Kubernetes::ReplicationController.fetch_all deploy_env, app
-      rc = rcs.first
-      rc.decrement_replica_count
-      rc.update
     end
     prompter.print 'Notifying NewRelic of deployment', :info
     notifier = Keel::Notifier::NewRelic.new env: deploy_env, sha: deploy_sha

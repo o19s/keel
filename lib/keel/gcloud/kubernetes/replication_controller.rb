@@ -7,40 +7,9 @@ module Keel::GCloud
     # It is a simplified view of what Kubernetes returns with only
     # the necessary information required to perform the operations needed.
     #
-    class ReplicationController
-      attr_accessor :containers, :name, :namespace, :original, :uid
-
-      def initialize **params
-        @containers = params[:containers]
-        @name       = params[:name]
-        @namespace  = params[:namespace]
-        @uid        = params[:uid]
-
-        @original   = params[:original]
-        @original['metadata'].delete 'creationTimestamp'
-      end
-
+    class ReplicationController < PodManager
       #
-      # Parses the returned YAML into objects of the ReplicationController class.
-      #
-      # @param yaml [Hash] the parsed result of the API call
-      # @return [Array<ReplicationController>] an array of ReplicationController objects
-      #
-      def self.from_yaml yaml
-        yaml['items'].map do |item|
-          params = {
-            containers: item['spec']['template']['spec']['containers'],
-            name:       item['metadata']['name'],
-            namespace:  item['metadata']['namespace'],
-            original:   item,
-            uid:        item['metadata']['uid'],
-          }
-          self.new params
-        end
-      end
-
-      #
-      # Fetches the correct deployment or replication controller from Kubernetes.
+      # Fetches the correct replication controller from Kubernetes.
       #
       # @param env [String] the namespace/environment for which to fetch the controllers
       # @param app [String] the app for which to fetch the controllers
@@ -49,67 +18,40 @@ module Keel::GCloud
       def self.fetch_all env, app
         command = "kubectl get rc --namespace=#{env} -l app=#{app} -o yaml"
         rcs_yaml = YAML.load Cli.new.execute(command)
-        return false unless rcs_yaml["items"].count > 0
+        return [] unless rcs_yaml["items"].count > 0
         self.from_yaml rcs_yaml 
       end
 
       #
-      # Replaces the controller's specifications with a new one.
+      # Find a replication controller by name
       #
-      # @param file [File] the new specifications file
-      # @return [Boolean] whether the call succeeded or not
+      # @param env [String] the namespace/environment for which to fetch the controllers
+      # @param name [String] the name of the replication controller
+      # @return a ReplicationController
       #
-      def self.replace file
-        Cli.new.system_call "kubectl replace -f #{file}"
+      def self.find env, name
+        command = "kubectl get rc --namespace=#{env} #{name} -o yaml"
+        rcs_yaml = YAML.load Cli.new.execute(command)
+        return false unless rcs_yaml["items"].count > 0
+        self.from_yaml rcs_yaml 
       end
 
-      #
-      # Get the YAML representation of the controller.
-      #
-      # @return [String] the YAML format
-      #
-      def to_yaml
-        self.original.to_yaml
-      end
 
-      #
-      # Writes the current specifications to a file.
-      #
-      # @param filename [String] the name of the file to write to
-      # @return [Boolean] result of the operation
-      #
-      def to_file filename
-        File.open(filename, 'w') do |io|
-          io.write self.to_yaml
-        end
-      end
+      # #
+      # # Increments the number of replicas.
+      # #
+      # def increment_replica_count
+      #   self.original['spec']['replicas'] += 1
+      # end
 
-      #
-      # Increments the number of replicas.
-      #
-      def increment_replica_count
-        self.original['spec']['replicas'] += 1
-      end
+      # #
+      # # Decrements the number of replicas.
+      # #
+      # def decrement_replica_count
+      #   self.original['spec']['replicas'] -= 1
+      # end
 
-      #
-      # Decrements the number of replicas.
-      #
-      def decrement_replica_count
-        self.original['spec']['replicas'] -= 1
-      end
 
-      #
-      # Updates the specifications of a controller on Kubernetes
-      # with the latest specs.
-      #
-      # (see #to_file)
-      # (see #replace)
-      #
-      def update
-        tmp_file = Rails.root.join('tmp', 'deployment-rc.yml')
-        self.to_file tmp_file
-        self.class.replace tmp_file
-      end
     end
   end
 end

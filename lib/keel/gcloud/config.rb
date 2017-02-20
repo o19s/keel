@@ -25,7 +25,14 @@ module Keel::GCloud
 
     def initialize
       @cli    = Cli.new
-      @config = YAML.load_file(Rails.root.join('config', 'gcloud.yml'))
+
+      path    = ''
+      if defined? Rails
+        path = Rails.root.join('config', 'gcloud.yml')
+      else
+        path = File.join(Dir.pwd, 'config.yaml')
+      end
+      @config = YAML.load_file(path)
 
       @app_name                       = @config[:app][:name]
       @compute_region                 = @config[:compute][:region]

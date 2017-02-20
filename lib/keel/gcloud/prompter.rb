@@ -33,7 +33,7 @@ module Keel::GCloud
     # @param default [String, nil] the default choice
     #
     def prompt_for_namespace namespaces, default=nil
-      return default unless default.blank?
+      return default unless default.nil? || default.empty?
 
       options = namespaces.map { |namespace| namespace.name } - ['kube-system']
       if options.count > 1
@@ -51,7 +51,7 @@ module Keel::GCloud
     # @param default [String, nil] the default choice
     #
     def prompt_for_label default=nil
-      return default unless default.blank?
+      return default unless default.nil? || default.empty?
 
       # Get current git SHA
       current_sha = `git rev-parse --short HEAD`.lines.first.split(' ')[0]
@@ -65,7 +65,7 @@ module Keel::GCloud
     # @param default [String, nil] the default choice
     #
     def prompt_for_database_url default=nil
-      return default unless default.blank?
+      return default unless default.nil? || default.empty?
 
       Ask.input 'Database URL'
     end
@@ -77,7 +77,7 @@ module Keel::GCloud
     # @param default [String, nil] the default choice
     #
     def prompt_for_secret_key default=nil
-      return default unless default.blank?
+      return default unless default.nil? || default.empty?
 
       Ask.input 'Secret key'
     end

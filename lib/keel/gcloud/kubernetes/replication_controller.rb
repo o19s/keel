@@ -37,19 +37,19 @@ module Keel::GCloud
       end
 
 
-      # #
-      # # Increments the number of replicas.
-      # #
-      # def increment_replica_count
-      #   self.original['spec']['replicas'] += 1
-      # end
+      #
+      # Increments the number of replicas.
+      #
+      def increment_replica_count
+        self.original['spec']['replicas'] += 1
+      end
 
-      # #
-      # # Decrements the number of replicas.
-      # #
-      # def decrement_replica_count
-      #   self.original['spec']['replicas'] -= 1
-      # end
+      #
+      # Decrements the number of replicas.
+      #
+      def decrement_replica_count
+        self.original['spec']['replicas'] -= 1
+      end
 
 
     end

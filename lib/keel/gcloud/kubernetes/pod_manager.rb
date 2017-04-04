@@ -16,7 +16,10 @@ module Keel::GCloud
         @uid        = params[:uid]
 
         @original   = params[:original]
+        
+        # don't send status back when updating the manager
         @original['metadata'].delete 'creationTimestamp'
+        @original.delete 'status'
       end
     
       #

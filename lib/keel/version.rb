@@ -1,3 +1,3 @@
 module Keel
-  VERSION = "0.1.6" # :nodoc:
+  VERSION = "0.1.7" # :nodoc:
 end

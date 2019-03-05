@@ -4,6 +4,8 @@ This gem provides a few easy to run rake tasks to deploy your [Rails](http://rub
 
 [![Gem Version](https://badge.fury.io/rb/keel.svg)](https://badge.fury.io/rb/keel)
 
+_Update: March 2019 - We are no longer maintaining this Gem.  Please contact epugh@opensourceconnections.com if you would like to take over_
+
 ## Installation
 
 Add this line to your application's Gemfile:
